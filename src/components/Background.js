@@ -1,39 +1,31 @@
 import React from 'react'
-import { ImageBackground, StyleSheet, KeyboardAvoidingView, SafeAreaView, ScrollView } from 'react-native'
+import { ImageBackground, StyleSheet, Platform, KeyboardAvoidingView, SafeAreaView, ScrollView, Dimensions } from 'react-native'
 
 export default function Background({ children }) {
   return (
     <ImageBackground
       source={require('../assets/background_dot2x.png')}
       resizeMode="repeat"
-      style={styles.background}
-      // resizeMode="cover"
+      style={styles.container}
+      resizeMode="repeat"
     >
-      {/* <KeyboardAvoidingView style={styles.container} behavior="padding"> */}
-      {/* <ScrollView> */}
-      <SafeAreaView>
-        {children}
-      </SafeAreaView>
-      {/* </ScrollView> */}
-      {/* </KeyboardAvoidingView> */}
-    </ImageBackground>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" && "padding" }>
+        <ScrollView>
+          <SafeAreaView>
+            {children}
+          </SafeAreaView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground >
   )
 }
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    weight: '100%',
-    // justifyContent: "center",
-    // alignItems: 'center',
-  },
   container: {
     flex: 1,
-    padding: 20,
-    width: '100%',
-    maxWidth: 340,
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    weight: windowWidth,
+    height: windowHeight
+  }
 })

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, StatusBar, Dimensions, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/Entypo';
 import IconFeather from 'react-native-vector-icons/Feather';
@@ -10,13 +10,14 @@ import useFetch from './utils/useFetch';
 import Background from './components/Background';
 import Button from './components/Button';
 import Input from './components/Input';
+import RenderResult from './components/RenderResult';
 
 const App = () => {
   const [fetchBloodTestConfig, testConf, isLoading, errorMessage] = useFetch([]);
   const [testName, setTestName] = useState('');
   const [result, setResult] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
-  const [inidication, setInidication] = useState(true);
+  const [indication, setIndication] = useState(true);
   const [propmtResult, setPropmtResult] = useState(false);
 
   const darkTheme = useTheme();
@@ -28,26 +29,36 @@ const App = () => {
     primaryColor: THEME.heart
   }
 
+  useEffect(() => {
+    fetchBloodTestConfig(userID)
+  }, []);
+
   const userID = 12345;
 
-  const renderResult = async (item) => {
+  const processResult = (item) => {
+    // console.log('item: ', item);
 
-    let testNameFinlized = await testName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    let testNameFinlized = testName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
     if (testNameFinlized.includes(item.name.substring(0, 3)))
       if (result > item.threshold) {
         setDiagnosis(`Your ${item.name} Bad!`)
         setIndication(false);
+        setPropmtResult(true);
       }
       else if (result <= item.threshold && item.threshold > 0) {
         setDiagnosis(`Your ${item.name} Good!`);
-        setInidication(true)
+        setIndication(true);
+        setPropmtResult(true);
       }
       else {
         setDiagnosis(`The Test Name ${item.name} is Undefine!`);
         setIndication(false);
+        setPropmtResult(true);
       }
     setPropmtResult(true);
+
+    // return (<RenderResult diagnosis={diagnosis} />)
   }
 
   return (
@@ -70,70 +81,38 @@ const App = () => {
 
         <View style={styles.container}>
           <Text style={[styles.title, { color: theme.primaryColor }]}>Am I OK?</Text>
-          <Searchbar
-            style={[styles.textInput, {
-              backgroundColor: theme.bkg,
-              borderColor: theme.text, color: theme.primaryColor
-            }]}
-            icon
-            // clearIcon
-            // inputStyle={{ fontSize: 16 }}
-            theme={{ colors: { text: theme.text } }}
-            selectionColor={theme.primaryColor}
-            iconColor={theme.text}
-            placeholderTextColor={`${theme.text}88`}
+          <Input
+            theme={theme}
             value={testName}
-            placeholder="Test Name"
+            placeholder="Blood Test Name"
             errorText={errorMessage}
             onChangeText={setTestName}
-            blurOnSubmit={true}
           />
-          <Searchbar
-            style={[styles.textInput, {
-              backgroundColor: theme.bkg,
-              borderColor: theme.text, color: theme.primaryColor
-            }]}
-            icon
-            // clearIcon
-            // inputStyle={{ fontSize: 16 }}
-            theme={{ colors: { text: theme.text } }}
-            iconColor={theme.text}
-            placeholderTextColor={`${theme.text}88`}
-            selectionColor={theme.primaryColor}
-            blur
+          <Input
+            theme={theme}
             value={result}
             placeholder="Result"
             errorText={errorMessage}
             onChangeText={setResult}
-            blurOnSubmit={true}
           />
           <Button
             style={[styles.button, { backgroundColor: theme.primaryColor }]}
             labelStyle={{ color: '#fff' }}
             theme={{ colors: { text: theme.text } }}
-            onPress={(userID) => { fetchBloodTestConfig(userID) }}
+            onPress={(userID) => {
+              testConf.forEach(item => processResult(item))
+            }}
             loading={isLoading}
           >
             Submit test result
           </Button>
 
-          {testConf && testConf.forEach(item => renderResult(item))}
           {propmtResult &&
             <View style={styles.card}>
-              {inidication ?
-                <>
-                  <Text style={[styles.cardTitle, { color: theme.primaryColor }]}>{diagnosis}</Text>
-                  <Icon name='emoji-happy' style={[styles.inidicationIcon, { color: THEME.gold }]} />
-                </>
-                :
-                <>
-                  <Text style={[styles.cardTitle, { color: THEME.primaryColor }]}>{diagnosis}</Text>
-                  <Icon name='emoji-sad' style={[styles.inidicationIcon]} />
-                </>
-              }
+              <Text style={[styles.cardTitle, { color: theme.primaryColor }]}>{diagnosis}</Text>
+              <Icon name={indication ? 'emoji-happy' : 'emoji-sad'} style={[styles.inidicationIcon, { color: indication ? THEME.gold : '#ccc' }]} />
             </View>
           }
-
         </View >
       </Background >
     </View >
@@ -163,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     padding: '2%',
     fontWeight: '300',
-    alignItems: 'center',    
+    alignItems: 'center',
   },
   title: {
     textAlign: 'center',
@@ -192,16 +171,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   card: {
+    flex: 1,
     width: windowWidth * .8,
-    alignItems: 'center',
-    alignContent: 'center',
-  },
-  cardTitle: {
-    width: windowWidth * .75,
+    paddingTop: '5%',
     height: 'auto',
     alignItems: 'center',
+    alignContent: 'center',
+    justifyContent: 'center',
+  },
+  cardTitle: {
+    height: 60,
     fontSize: 20,
     fontWeight: '600',
+    alignItems: 'center',
+    alignContent: 'center',
     justifyContent: 'center',
   },
 });

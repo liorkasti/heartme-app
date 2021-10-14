@@ -1,44 +1,42 @@
 import React from 'react'
-import { View, StyleSheet, Text, TextInput } from 'react-native'
-// import { TextInput as Input } from 'react-native-paper'
+import { StyleSheet, Dimensions } from 'react-native'
+import { Searchbar } from 'react-native-paper';
 
-export default function Input({ errorText, placeholder, description, ...props }) {
+export default function Input({
+  theme, value, onChangeText, errorText, placeholder, description,
+}) {
+
+
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        // selectionColor={theme.colors.primary}
-        underlineColor="transparent"
-        placeholder={placeholder}
-        // mode="outlined"
-        {...props}
-      />
-
-      {/*       {description && !errorText ?
-        <Text style={styles.description}>{description}</Text> : null
-      }
-      {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
- */}
-    </View>
+    <Searchbar
+      style={[styles.textInput, {
+        backgroundColor: theme.bkg,
+        borderColor: theme.text, color: theme.primaryColor
+      }]}
+      theme={{ colors: { text: theme.text } }}
+      iconColor={theme.text}
+      placeholderTextColor={`${theme.text}88`}
+      selectionColor={theme.primaryColor}
+      icon
+      blur
+      value={value}
+      placeholder={placeholder}
+      errorText={errorText}
+      onChangeText={onChangeText}
+      blurOnSubmit={true}
+    />
   )
 }
 
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    marginVertical: 12,
-  },
-  input: {
-    // backgroundColor: theme.colors.surface,
-  },
-  description: {
-    fontSize: 13,
-    // color: theme.colors.secondary,
-    paddingTop: 8,
-  },
-  error: {
-    fontSize: 13,
-    // color: theme.colors.error,
-    paddingTop: 8,
+  textInput: {
+    width: windowWidth * .65,
+    borderRadius: 10,
+    borderBottomWidth: 2,
+    margin: '5%',
+    elevation: 5,
   },
 })
