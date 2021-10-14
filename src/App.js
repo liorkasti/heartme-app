@@ -31,10 +31,8 @@ const App = () => {
 
   useEffect(() => {
     fetchBloodTestConfig(userID)
-    console.log('userID', userID);
     return () => {
       setAnalized(false);
-      console.log('Analized', false);
     }
   }, []);
 

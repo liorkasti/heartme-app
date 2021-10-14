@@ -31,7 +31,6 @@ const Input = ({ theme, value, onChangeText, errorText, placeholder, description
 }
 
 const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
