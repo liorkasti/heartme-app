@@ -21,6 +21,7 @@ const App = () => {
   const [analized, setAnalized] = useState(false);
   const darkTheme = useTheme();
   const toggleTheme = useThemeUpdate();
+  const userID = Math.floor(Math.random() * 99999);
 
   const theme = {
     bkg: darkTheme ? THEME.darkBkg : THEME.light,
@@ -30,13 +31,13 @@ const App = () => {
 
   useEffect(() => {
     fetchBloodTestConfig(userID)
+    console.log('userID', userID);
     return () => {
       setAnalized(false);
       console.log('Analized', false);
     }
   }, []);
 
-  const userID = 12345;
 
   const validation = () => {
     if (testName.length < 1) {
@@ -48,15 +49,16 @@ const App = () => {
       setDescription('Please enter your test result');
       setAnalized(false);
     } else {
+      //Note: Analyze the input according to dataset's first encounter with leeway for different word ordering, punctuation and typos
       const exist = testConf.filter(
         test => testName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().includes(test.name.substring(0, 3)));
       analysis(exist[0]);
     }
   }
 
-  console.log('num validation', result.match(/^[0-9]+$/) == null);
-
   const analysis = (item) => {
+    console.log('testName', testName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase());
+
     setAnalized(false);
     if (!item) {
       setDiagnosis(`Test was not found!`);
@@ -94,7 +96,7 @@ const App = () => {
           <View style={styles.switchContainer}>
             <IconFeather
               name={darkTheme ? 'moon' : 'sun'}
-              style={[styles.icon, { color: darkTheme ? '#fff' : theme.primaryColor }]}
+              style={[styles.icon, { color: darkTheme ? '#fff' : THEME.gold }]}
             />
             <Switch
               value={darkTheme}
@@ -124,6 +126,8 @@ const App = () => {
           />
           <Button
             style={[styles.button, { backgroundColor: theme.primaryColor }]}
+            theme={theme}
+            mode={darkTheme}
             labelStyle={{ color: '#fff' }}
             theme={{ colors: { text: theme.text } }}
             onPress={validation}
