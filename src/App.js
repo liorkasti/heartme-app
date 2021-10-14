@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, StatusBar, Dimensions, FlatList } from 'react-native';
-import Icon from 'react-native-vector-icons/Entypo';
+import { StyleSheet, View, StatusBar, Dimensions } from 'react-native';
 import IconFeather from 'react-native-vector-icons/Feather';
-import { ActivityIndicator, Text, TouchableRipple, Switch, Searchbar } from 'react-native-paper';
+import { Text, TouchableRipple, Switch } from 'react-native-paper';
 
 import { THEME } from './utils/constants';
 import { useTheme, useThemeUpdate } from './utils/ThemeContext';
@@ -10,16 +9,16 @@ import useFetch from './utils/useFetch';
 import Background from './components/Background';
 import Button from './components/Button';
 import Input from './components/Input';
-import RenderResult from './components/RenderResult';
+import RenderDiagnosis from './components/RenderDiagnosis';
 
 const App = () => {
   const [fetchBloodTestConfig, testConf, isLoading, errorMessage] = useFetch([]);
   const [testName, setTestName] = useState('');
   const [result, setResult] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
-  const [indication, setIndication] = useState(true);
-  const [propmtResult, setPropmtResult] = useState(false);
-
+  const [description, setDescription] = useState('');
+  const [indication, setIndication] = useState('emoji-neutral');
+  const [analized, setAnalized] = useState(false);
   const darkTheme = useTheme();
   const toggleTheme = useThemeUpdate();
 
@@ -31,34 +30,60 @@ const App = () => {
 
   useEffect(() => {
     fetchBloodTestConfig(userID)
+    return () => {
+      setAnalized(false);
+      console.log('Analized', false);
+    }
   }, []);
 
   const userID = 12345;
 
-  const processResult = (item) => {
-    // console.log('item: ', item);
+  const validation = () => {
+    if (testName.length < 1) {
+      setDescription('Please enter test name');
+      setDiagnosis('');
+      setAnalized(false);
+    } else if (result.length < 1) {
+      setDiagnosis('');
+      setDescription('Please enter your test result');
+      setAnalized(false);
+    } else {
+      const exist = testConf.filter(
+        test => testName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().includes(test.name.substring(0, 3)));
+      analysis(exist[0]);
+    }
+  }
 
-    let testNameFinlized = testName.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  console.log('num validation', result.match(/^[0-9]+$/) == null);
 
-    if (testNameFinlized.includes(item.name.substring(0, 3)))
-      if (result > item.threshold) {
-        setDiagnosis(`Your ${item.name} Bad!`)
-        setIndication(false);
-        setPropmtResult(true);
-      }
-      else if (result <= item.threshold && item.threshold > 0) {
-        setDiagnosis(`Your ${item.name} Good!`);
-        setIndication(true);
-        setPropmtResult(true);
-      }
-      else {
-        setDiagnosis(`The Test Name ${item.name} is Undefine!`);
-        setIndication(false);
-        setPropmtResult(true);
-      }
-    setPropmtResult(true);
+  const analysis = (item) => {
+    setAnalized(false);
+    if (!item) {
+      setDiagnosis(`Test was not found!`);
+      setIndication('emoji-neutral');
+      setDescription('')
+      setAnalized(true);
+    } else if (result.match(/^[0-9]+$/) == null) {
+      setDiagnosis(`Invalid result!`)
+      setIndication('emoji-neutral');
+      setDescription('')
+      setAnalized(true);
+    } else if (result > item.threshold) {
+      setDiagnosis(`Your ${item.name} results are Bad!`)
+      setIndication('emoji-sad');
+      setDescription('')
+      setAnalized(true);
+    } else if (result <= item.threshold) {
+      setDiagnosis(`Your ${item.name} results are Good!`);
+      setIndication('emoji-happy');
+      setDescription('')
+      setAnalized(true);
+    } else {
+      setDiagnosis(`Unknown result!`);
+      setIndication('emoji-neutral');
+      setAnalized(true);
+    }
 
-    // return (<RenderResult diagnosis={diagnosis} />)
   }
 
   return (
@@ -84,35 +109,43 @@ const App = () => {
           <Input
             theme={theme}
             value={testName}
-            placeholder="Blood Test Name"
+            description={description}
+            placeholder="Test Name"
             errorText={errorMessage}
             onChangeText={setTestName}
           />
           <Input
             theme={theme}
             value={result}
-            placeholder="Result"
+            description={description}
             errorText={errorMessage}
+            placeholder="Result"
             onChangeText={setResult}
           />
           <Button
             style={[styles.button, { backgroundColor: theme.primaryColor }]}
             labelStyle={{ color: '#fff' }}
             theme={{ colors: { text: theme.text } }}
-            onPress={(userID) => {
-              testConf.forEach(item => processResult(item))
-            }}
+            onPress={validation}
             loading={isLoading}
           >
             Submit test result
           </Button>
-
-          {propmtResult &&
+          {errorMessage.length > 0 &&
+            <Text Text Text style={{ color: theme.primaryColor }}>{errorMessage}{'\n'}Please check your network connection.</Text>
+          }
+          {/* {analized &&
             <View style={styles.card}>
               <Text style={[styles.cardTitle, { color: theme.primaryColor }]}>{diagnosis}</Text>
-              <Icon name={indication ? 'emoji-happy' : 'emoji-sad'} style={[styles.inidicationIcon, { color: indication ? THEME.gold : '#ccc' }]} />
+              <Icon name={indication} style={[styles.inidicationIcon, { color: indication === 'emoji-happy' ? THEME.gold : '#ccc' }]} />
             </View>
-          }
+          } */}
+          {analized && <RenderDiagnosis
+            theme={theme}
+            diagnosis={diagnosis}
+            errorText={errorMessage}
+            indication={indication}
+          />}
         </View >
       </Background >
     </View >
@@ -158,9 +191,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   button: {
+    height: 55,
     width: windowWidth * .65,
     borderRadius: 10,
     borderBottomWidth: 2,
+    justifyContent: 'center',
     margin: '5%',
     elevation: 5,
   },

@@ -1,7 +1,7 @@
 import React from 'react'
 import { ImageBackground, StyleSheet, Platform, KeyboardAvoidingView, SafeAreaView, ScrollView, Dimensions } from 'react-native'
 
-export default function Background({ children }) {
+const Background = ({ children }) => {
   return (
     <ImageBackground
       source={require('../assets/background_dot2x.png')}
@@ -9,7 +9,7 @@ export default function Background({ children }) {
       style={styles.container}
       resizeMode="repeat"
     >
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" && "padding" }>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" && "padding"}>
         <ScrollView>
           <SafeAreaView>
             {children}
@@ -29,3 +29,4 @@ const styles = StyleSheet.create({
     height: windowHeight
   }
 })
+export default Background;
